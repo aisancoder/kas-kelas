@@ -425,26 +425,45 @@
         </div>
     </div>
 
-    <!-- PAGE: BULK -->
-    <div id="page-bulk" class="page">
-        <div class="glass-card">
-            <div class="card-title">✅ Bayar Cepat (Bulk)</div>
-            <p class="text-muted">Centang siswa yang sudah bayar, isi nominal, lalu simpan sekali!</p>
-            <div class="flex-row" style="margin-top:12px;">
-                <div style="flex:1;"><label class="text-muted" style="font-size:0.8rem;">Tanggal</label><input type="date" id="bulkTanggal" class="form-control"></div>
-                <div style="flex:1;"><label class="text-muted" style="font-size:0.8rem;">Nominal</label><input type="number" id="bulkNominal" class="form-control" placeholder="Rp"></div>
-                <div style="flex:1; display:flex; align-items:flex-end;"><button class="btn btn-success" onclick="submitBulkPayment()">💰 Bayar Semua</button></div>
+    <!-- PAGE: BULK (DENGAN FILTER & STATUS) -->
+<div id="page-bulk" class="page">
+    <div class="glass-card">
+        <div class="card-title">✅ Bayar Cepat (Bulk)</div>
+        <p class="text-muted">Filter nama, lihat status, centang yang belum bayar.</p>
+        
+        <div class="flex-row" style="margin-top:10px; flex-wrap:wrap;">
+            <div style="flex:2; min-width:150px;">
+                <label class="text-muted" style="font-size:0.8rem;">🔍 Cari Nama</label>
+                <input type="text" id="bulkFilter" class="form-control" placeholder="Ketik nama..." oninput="filterBulk()">
             </div>
-            <div class="flex-row" style="margin:12px 0;">
-                <button class="btn btn-outline" onclick="toggleAllCheckbox(true)">✅ Centang Semua</button>
-                <button class="btn btn-outline" onclick="toggleAllCheckbox(false)">⬜ Hapus Semua</button>
+            <div style="flex:1; min-width:120px;">
+                <label class="text-muted" style="font-size:0.8rem;">📅 Bulan</label>
+                <input type="month" id="bulkBulan" class="form-control" onchange="loadBulk()">
             </div>
-            <div class="table-wrap">
-                <table><thead><tr><th style="width:40px;">#</th><th>Nama</th><th>Kelas</th></tr></thead>
-                <tbody id="tableBulk"></tbody></table>
+            <div style="flex:1; min-width:120px;">
+                <label class="text-muted" style="font-size:0.8rem;">💰 Nominal</label>
+                <input type="number" id="bulkNominal" class="form-control" placeholder="Rp">
+            </div>
+            <div style="flex:1; min-width:100px; display:flex; align-items:flex-end;">
+                <button class="btn btn-success" onclick="submitBulkPayment()">💰 Bayar</button>
             </div>
         </div>
+
+        <div class="flex-row" style="margin:10px 0;">
+            <button class="btn btn-outline" onclick="toggleAllCheckbox(true)">✅ Centang Semua</button>
+            <button class="btn btn-outline" onclick="toggleAllCheckbox(false)">⬜ Hapus Semua</button>
+            <button class="btn btn-outline" onclick="filterBulk()">🔄 Refresh</button>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th style="width:40px;">#</th><th>Nama</th><th>Kelas</th><th>Status</th></tr></thead>
+                <tbody id="tableBulk"></tbody>
+            </table>
+        </div>
+        <p id="bulkSummary" class="text-muted mt-2"></p>
     </div>
+</div>
 
     <!-- PAGE: STATUS -->
     <div id="page-status" class="page">
@@ -721,23 +740,64 @@ async function simpanTransaksi() {
 }
 
 // ============================================================
-//  BULK PAYMENT
+//  BULK PAYMENT (DENGAN FILTER & STATUS)
 // ============================================================
+let bulkData = [];
+
 async function loadBulk() {
     try {
-        document.getElementById('bulkTanggal').value = getToday();
+        const bulan = document.getElementById('bulkBulan').value || getThisMonth();
         const resSettings = await fetch(API.settings);
         const settings = await resSettings.json();
-        if (settings.iuran_bulanan) document.getElementById('bulkNominal').value = settings.iuran_bulanan;
-        const res = await fetch(API.anggota);
-        const data = await res.json();
-        const tbody = document.getElementById('tableBulk');
-        if (!data.length) { tbody.innerHTML = '<tr><td colspan="3" class="text-muted">Belum ada anggota</td></tr>'; return; }
-        tbody.innerHTML = data.map(a => `
-            <tr><td><input type="checkbox" class="bulk-checkbox" data-id="${a.id}" style="width:20px;height:20px;accent-color:#a78bfa;"></td>
-            <td><strong>${a.nama}</strong></td><td>${a.kelas||'-'}</td></tr>
-        `).join('');
-    } catch(e) { toast('Gagal load bulk'); }
+        if (settings.iuran_bulanan) {
+            document.getElementById('bulkNominal').value = settings.iuran_bulanan;
+        }
+        const res = await fetch(`/api/bulk_status?bulan=${bulan}`);
+        bulkData = await res.json();
+        renderBulkTable(bulkData);
+        updateBulkSummary();
+    } catch(e) { toast('Gagal load bulk', true); }
+}
+
+function renderBulkTable(data) {
+    const tbody = document.getElementById('tableBulk');
+    if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-muted">Belum ada anggota</td></tr>';
+        return;
+    }
+    tbody.innerHTML = data.map(a => {
+        const isLunas = a.status === 'Lunas';
+        const icon = isLunas ? '✅' : '❌';
+        const statusClass = isLunas ? 'badge-success' : 'badge-danger';
+        return `
+            <tr>
+                <td><input type="checkbox" class="bulk-checkbox" data-id="${a.id}" ${isLunas ? 'checked' : ''} style="width:20px;height:20px;accent-color:#a78bfa;"></td>
+                <td><strong>${a.nama}</strong></td>
+                <td>${a.kelas || '-'}</td>
+                <td><span class="badge ${statusClass}">${icon} ${a.status} (Rp ${formatRupiah(a.total_bayar)})</span></td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function filterBulk() {
+    const keyword = document.getElementById('bulkFilter').value.toLowerCase().trim();
+    if (!keyword) {
+        renderBulkTable(bulkData);
+        updateBulkSummary();
+        return;
+    }
+    const filtered = bulkData.filter(a => a.nama.toLowerCase().includes(keyword));
+    renderBulkTable(filtered);
+    updateBulkSummary(filtered);
+}
+
+function updateBulkSummary(filteredData = null) {
+    const data = filteredData || bulkData;
+    const total = data.length;
+    const lunas = data.filter(a => a.status === 'Lunas').length;
+    const belum = total - lunas;
+    document.getElementById('bulkSummary').textContent = `📊 Total: ${total} | ✅ Lunas: ${lunas} | ❌ Belum: ${belum}`;
 }
 
 function toggleAllCheckbox(checked) {
@@ -745,11 +805,10 @@ function toggleAllCheckbox(checked) {
 }
 
 async function submitBulkPayment() {
-    const tanggal = document.getElementById('bulkTanggal').value;
+    const bulan = document.getElementById('bulkBulan').value || getThisMonth();
     const nominal = parseInt(document.getElementById('bulkNominal').value);
     const checkboxes = document.querySelectorAll('.bulk-checkbox:checked');
     const anggota_ids = Array.from(checkboxes).map(cb => parseInt(cb.dataset.id));
-    if (!tanggal) return toast('Tanggal harus diisi');
     if (!nominal || nominal <= 0) return toast('Nominal harus diisi');
     if (anggota_ids.length === 0) return toast('Pilih minimal 1 anggota');
     if (!confirm(`Bayar ${anggota_ids.length} anggota Rp ${formatRupiah(nominal)}?`)) return;
@@ -757,13 +816,13 @@ async function submitBulkPayment() {
         const res = await fetch(API.bulk, {
             method: 'POST',
             headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({tanggal, nominal, anggota_ids})
+            body: JSON.stringify({tanggal: bulan + '-01', nominal, anggota_ids})
         });
         const data = await res.json();
         if (res.ok) {
             toast(data.message);
             if (data.surprise) { toast('✨ ' + data.surprise); fireConfetti(80); }
-            document.querySelectorAll('.bulk-checkbox').forEach(cb => cb.checked = false);
+            loadBulk();
             loadDashboard();
         } else {
             toast(data.error || 'Gagal');
