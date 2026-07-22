@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>User - Kas Kelas</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
+        body { background: #f4f6f9; padding: 16px; color: #1e293b; }
+        .container { max-width: 1100px; margin: 0 auto; }
+        .app-header {
+            background: #1e293b; color: white; padding: 16px 20px; border-radius: 16px;
+            margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap;
+        }
+        .app-header h1 { font-size: 1.4rem; font-weight: 700; }
+        .user-info { display: flex; align-items: center; gap: 12px; }
+        .user-info span { font-size: 0.85rem; opacity: 0.8; }
+        .btn-logout { background: #ef4444; color: white; border: none; padding: 6px 14px; border-radius: 40px; font-weight: 600; font-size: 0.8rem; cursor: pointer; }
+        .btn-logout:hover { background: #b91c1c; }
+        .nav-tabs {
+            display: flex; flex-wrap: wrap; gap: 6px; background: white; padding: 8px;
+            border-radius: 16px; margin-bottom: 24px;
+        }
+        .nav-tab {
+            flex: 1 0 auto; padding: 10px 8px; text-align: center; border-radius: 12px;
+            font-weight: 600; font-size: 0.8rem; background: transparent; border: none;
+            color: #64748b; cursor: pointer; transition: 0.2s;
+        }
+        .nav-tab.active { background: #1e293b; color: white; }
+        .page { display: none; animation: fade 0.25s ease; }
+        .page.active { display: block; }
+        @keyframes fade { from { opacity: 0.5; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        .card { background: white; border-radius: 16px; padding: 18px; margin-bottom: 18px; border: 1px solid #e9edf2; }
+        .card-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; }
+        .stat-box { background: #f8fafc; padding: 14px; border-radius: 12px; text-align: center; }
+        .stat-box .num { font-size: 1.6rem; font-weight: 800; color: #0f172a; }
+        .stat-box .label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-control { width: 100%; padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 0.95rem; }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th { text-align: left; padding: 10px 6px; background: #f1f5f9; }
+        td { padding: 10px 6px; border-bottom: 1px solid #f1f5f9; }
+        .badge { padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; display: inline-block; }
+        .badge-success { background: #dcfce7; color: #166534; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .text-muted { color: #64748b; font-size: 0.8rem; }
+        .mt-2 { margin-top: 12px; }
+        .chart-container { height: 300px; width: 100%; }
+        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #0f172a; color: white; padding: 12px 24px; border-radius: 40px; font-weight: 600; z-index: 999; opacity: 0; transition: 0.3s; pointer-events: none; }
+        .toast.show { opacity: 1; }
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .app-header h1 { font-size: 1.1rem; }
+            .nav-tab { font-size: 0.65rem; padding: 8px 4px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .stat-box .num { font-size: 1.2rem; }
+            .chart-container { height: 200px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div id="toast" class="toast"></div>
+    <div class="app-header">
+        <h1>💰 Kas Kelas</h1>
+        <div class="user-info">
+            <span>👤 User</span>
+            <a href="/logout" class="btn-logout">Keluar</a>
+        </div>
+    </div>
+
+    <div class="nav-tabs">
+        <button class="nav-tab active" data-page="dashboard">📊 Dashboard</button>
+        <button class="nav-tab" data-page="anggota">👥 Anggota</button>
+        <button class="nav-tab" data-page="status">✅ Status</button>
+        <button class="nav-tab" data-page="riwayat">📜 Riwayat</button>
+    </div>
+
+    <div id="page-dashboard" class="page active">
+        <div class="card">
+            <div class="stats-grid" id="dashboardStats">
+                <div class="stat-box"><div class="num" id="statSaldo">0</div><div class="label">Saldo</div></div>
+                <div class="stat-box"><div class="num" id="statIn">0</div><div class="label">Total Masuk</div></div>
+                <div class="stat-box"><div class="num" id="statOut">0</div><div class="label">Total Keluar</div></div>
+                <div class="stat-box"><div class="num" id="statAnggota">0</div><div class="label">Anggota</div></div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title">📈 Grafik Pemasukan vs Pengeluaran</div>
+            <div class="chart-container"><canvas id="chartKas"></canvas></div>
+        </div>
+    </div>
+
+    <div id="page-anggota" class="page">
+        <div class="card">
+            <div class="card-title">📋 Daftar Anggota</div>
+            <div class="table-wrap">
+                <table><thead><tr><th>ID</th><th>Nama</th><th>Kelas</th></tr></thead>
+                <tbody id="tableAnggota"></tbody></table>
+            </div>
+            <p class="text-muted mt-2">*Hanya melihat</p>
+        </div>
+    </div>
+
+    <div id="page-status" class="page">
+        <div class="card">
+            <div class="card-title">
+                <span>📊 Status Iuran</span>
+                <input type="month" id="statusBulan" class="form-control" style="width:auto;padding:4px 8px;" onchange="loadStatus()">
+            </div>
+            <div class="table-wrap">
+                <table><thead><tr><th>Nama</th><th>Total Bayar</th><th>Target</th><th>Status</th></tr></thead>
+                <tbody id="tableStatus"></tbody></table>
+            </div>
+            <p id="statusSummary" class="text-muted mt-2"></p>
+        </div>
+    </div>
+
+    <div id="page-riwayat" class="page">
+        <div class="card">
+            <div class="card-title">
+                <span>📜 Riwayat Transaksi</span>
+                <input type="month" id="riwayatBulan" class="form-control" style="width:auto;padding:4px 8px;" onchange="loadRiwayat()">
+            </div>
+            <div class="table-wrap">
+                <table><thead><tr><th>Tgl</th><th>Anggota</th><th>Jenis</th><th>Kategori</th><th>Nominal</th></tr></thead>
+                <tbody id="tableRiwayat"></tbody></table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============================================================
+// SAMA SEPERTI ADMIN TAPI TANPA FITUR TAMBAH/HAPUS
+// ============================================================
+const API = {
+    dashboard: '/api/dashboard',
+    anggota: '/api/anggota',
+    transaksi: '/api/transaksi',
+    status: '/api/status',
+    chart: '/api/chart_data'
+};
+let chartInstance = null;
+
+function toast(msg, isError=false) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.style.background = isError ? '#b91c1c' : '#0f172a';
+    el.classList.add('show');
+    clearTimeout(el._timeout);
+    el._timeout = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+function formatRupiah(num) {
+    return new Intl.NumberFormat('id-ID').format(num);
+}
+function getThisMonth() { return new Date().toISOString().slice(0, 7); }
+
+document.querySelectorAll('.nav-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        const page = this.dataset.page;
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('page-' + page).classList.add('active');
+        if (page === 'dashboard') { loadDashboard(); loadChart(); }
+        if (page === 'anggota') loadAnggota();
+        if (page === 'status') loadStatus();
+        if (page === 'riwayat') loadRiwayat();
+    });
+});
+
+async function loadDashboard() {
+    try {
+        const res = await fetch(API.dashboard);
+        const data = await res.json();
+        document.getElementById('statSaldo').textContent = formatRupiah(data.saldo);
+        document.getElementById('statIn').textContent = formatRupiah(data.total_in);
+        document.getElementById('statOut').textContent = formatRupiah(data.total_out);
+        document.getElementById('statAnggota').textContent = data.total_anggota;
+    } catch(e) { console.error(e); }
+}
+
+async function loadChart() {
+    try {
+        const res = await fetch(API.chart);
+        const data = await res.json();
+        const ctx = document.getElementById('chartKas').getContext('2d');
+        if (chartInstance) chartInstance.destroy();
+        chartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.labels,
+                datasets: [
+                    { label: 'Pemasukan', data: data.pemasukan, backgroundColor: 'rgba(34,197,94,0.6)', borderColor: '#22c55e', borderWidth: 2 },
+                    { label: 'Pengeluaran', data: data.pengeluaran, backgroundColor: 'rgba(239,68,68,0.6)', borderColor: '#ef4444', borderWidth: 2 }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'top' } },
+                scales: { y: { beginAtZero: true, ticks: { callback: v => 'Rp '+formatRupiah(v) } } }
+            }
+        });
+    } catch(e) { console.error(e); }
+}
+
+async function loadAnggota() {
+    try {
+        const res = await fetch(API.anggota);
+        const data = await res.json();
+        const tbody = document.getElementById('tableAnggota');
+        if (!data.length) { tbody.innerHTML = '<tr><td colspan="3" class="text-muted">Belum ada anggota</td></tr>'; return; }
+        tbody.innerHTML = data.map(a => `<tr><td>${a.id}</td><td><strong>${a.nama}</strong></td><td>${a.kelas||'-'}</td></tr>`).join('');
+    } catch(e) { toast('Gagal load anggota', true); }
+}
+
+async function loadStatus() {
+    const bulan = document.getElementById('statusBulan').value || getThisMonth();
+    try {
+        const res = await fetch(`${API.status}?bulan=${bulan}`);
+        const data = await res.json();
+        const tbody = document.getElementById('tableStatus');
+        if (!data.data.length) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-muted">Tidak ada anggota</td></tr>';
+            document.getElementById('statusSummary').textContent = '';
+            return;
+        }
+        let sudah=0, belum=0;
+        tbody.innerHTML = data.data.map(d => {
+            if (d.status === 'Lunas') sudah++; else belum++;
+            return `<tr><td><strong>${d.nama}</strong></td><td>Rp ${formatRupiah(d.total_bayar)}</td>
+                    <td>Rp ${formatRupiah(d.target)}</td>
+                    <td><span class="badge ${d.status==='Lunas'?'badge-success':'badge-danger'}">${d.status}</span></td></tr>`;
+        }).join('');
+        document.getElementById('statusSummary').textContent = `✅ ${sudah} Lunas | ❌ ${belum} Belum (Target: Rp ${formatRupiah(data.target_iuran)})`;
+    } catch(e) { toast('Gagal load status', true); }
+}
+
+async function loadRiwayat() {
+    const bulan = document.getElementById('riwayatBulan').value || getThisMonth();
+    try {
+        const res = await fetch(`${API.transaksi}?bulan=${bulan}`);
+        const data = await res.json();
+        const tbody = document.getElementById('tableRiwayat');
+        if (!data.length) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-muted">Tidak ada transaksi</td></tr>';
+            return;
+        }
+        tbody.innerHTML = data.map(t => `
+            <tr><td>${t.tanggal}</td><td>${t.nama_anggota||'Umum'}</td>
+            <td><span class="badge ${t.jenis==='pemasukan'?'badge-success':'badge-danger'}">${t.jenis}</span></td>
+            <td>${t.kategori||'-'}</td><td>Rp ${formatRupiah(t.nominal)}</td></tr>
+        `).join('');
+    } catch(e) { toast('Gagal load riwayat', true); }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const thisMonth = getThisMonth();
+    document.getElementById('statusBulan').value = thisMonth;
+    document.getElementById('riwayatBulan').value = thisMonth;
+    loadDashboard(); loadChart(); loadAnggota(); loadStatus(); loadRiwayat();
+});
+</script>
+</body>
+</html>
