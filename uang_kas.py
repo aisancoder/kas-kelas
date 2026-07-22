@@ -5,28 +5,34 @@ import hashlib
 import io
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
-from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 from reportlab.lib.units import cm
+import random
+import os
 
 app = Flask(__name__)
-app.secret_key = 'rahasia_kas_kelas_67890'
+app.secret_key = 'rahasia_kas_kelas_2026'
 
-# ================== DATABASE ==================
+# ================== KONFIGURASI DATABASE ==================
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, 'kas_kelas.db')
+
+def get_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
 def init_db():
-    conn = sqlite3.connect('kas_kelas.db')
+    conn = get_db()
     c = conn.cursor()
-    
-    # Anggota
     c.execute('''CREATE TABLE IF NOT EXISTS anggota (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nama TEXT UNIQUE NOT NULL,
         kelas TEXT
     )''')
-    
-    # Transaksi
     c.execute('''CREATE TABLE IF NOT EXISTS transaksi (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         anggota_id INTEGER,
@@ -37,44 +43,53 @@ def init_db():
         keterangan TEXT,
         FOREIGN KEY(anggota_id) REFERENCES anggota(id)
     )''')
-    
-    # Settings
     c.execute('''CREATE TABLE IF NOT EXISTS settings (
         key TEXT PRIMARY KEY,
         value TEXT
     )''')
     c.execute("INSERT OR IGNORE INTO settings (key, value) VALUES ('iuran_bulanan', '20000')")
-    
-    # Users
     c.execute('''CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
         role TEXT NOT NULL
     )''')
-    
-    # Admin
     admin_pass = hashlib.sha256('Aisannous987'.encode()).hexdigest()
     c.execute("INSERT OR IGNORE INTO users (username, password, role) VALUES (?, ?, ?)",
               ('admin', admin_pass, 'admin'))
-    
-    # User bersama
     user_pass = hashlib.sha256('kelas123'.encode()).hexdigest()
     c.execute("INSERT OR IGNORE INTO users (username, password, role) VALUES (?, ?, ?)",
               ('user', user_pass, 'user'))
-    
     conn.commit()
     conn.close()
 
-def get_db():
-    conn = sqlite3.connect('kas_kelas.db')
-    conn.row_factory = sqlite3.Row
-    return conn
+# Jalankan inisialisasi saat pertama kali diimport
+init_db()
 
-def is_admin():
-    return session.get('role') == 'admin'
+# ================== SURPRISE MESSAGES ==================
+SURPRISE_QUOTES = [
+    "✨ Mantap! Transaksi berhasil! Kamu hebat!",
+    "🎉 Yeay! Uang kas bertambah! Semangat terus!",
+    "💰 Saldo makin tebal! Keren!",
+    "🌟 Kamu luar biasa! Terus kelola kas dengan baik!",
+    "🚀 Transaksi sukses! Kelas makin maju!",
+    "🎊 Hore! Iuran masuk! Terima kasih admin!",
+    "💪 Semangat! Kas kelas sehat selalu!"
+]
+
+def get_surprise():
+    return random.choice(SURPRISE_QUOTES)
 
 # ================== HALAMAN ==================
+@app.route('/')
+def dashboard():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    if session.get('role') == 'admin':
+        return render_template('admin.html', username=session.get('username'))
+    else:
+        return render_template('user.html', username=session.get('username'))
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -99,16 +114,11 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
-@app.route('/')
-def dashboard():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    if session.get('role') == 'admin':
-        return render_template('admin.html', username=session.get('username'))
-    else:
-        return render_template('user.html', username=session.get('username'))
-
 # ================== API ==================
+@app.route('/api/surprise')
+def api_surprise():
+    return jsonify({'message': get_surprise()})
+
 @app.route('/api/dashboard')
 def api_dashboard():
     if 'user_id' not in session:
@@ -130,14 +140,12 @@ def api_dashboard():
         'total_anggota': total_anggota
     })
 
-# --- Grafik: pemasukan vs pengeluaran per bulan (6 bulan terakhir) ---
 @app.route('/api/chart_data')
 def api_chart_data():
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
     conn = get_db()
     cur = conn.cursor()
-    # Ambil 6 bulan terakhir
     today = datetime.date.today()
     months = []
     labels = []
@@ -145,7 +153,6 @@ def api_chart_data():
         m = today.replace(day=1) - datetime.timedelta(days=30*i)
         months.append(m.strftime('%Y-%m'))
         labels.append(m.strftime('%b %Y'))
-    
     pemasukan = []
     pengeluaran = []
     for bulan in months:
@@ -154,11 +161,7 @@ def api_chart_data():
         cur.execute("SELECT SUM(nominal) FROM transaksi WHERE jenis='pengeluaran' AND strftime('%Y-%m', tanggal) = ?", (bulan,))
         pengeluaran.append(cur.fetchone()[0] or 0)
     conn.close()
-    return jsonify({
-        'labels': labels,
-        'pemasukan': pemasukan,
-        'pengeluaran': pengeluaran
-    })
+    return jsonify({'labels': labels, 'pemasukan': pemasukan, 'pengeluaran': pengeluaran})
 
 # --- Anggota ---
 @app.route('/api/anggota', methods=['GET', 'POST', 'DELETE'])
@@ -172,7 +175,7 @@ def api_anggota():
         data = [dict(row) for row in cur.fetchall()]
         conn.close()
         return jsonify(data)
-    if not is_admin():
+    if session.get('role') != 'admin':
         return jsonify({'error': 'Hanya Admin'}), 403
     if request.method == 'POST':
         data = request.get_json()
@@ -221,7 +224,7 @@ def api_transaksi():
         data = [dict(row) for row in cur.fetchall()]
         conn.close()
         return jsonify(data)
-    if not is_admin():
+    if session.get('role') != 'admin':
         return jsonify({'error': 'Hanya Admin'}), 403
     if request.method == 'POST':
         data = request.get_json()
@@ -301,7 +304,7 @@ def api_settings():
         data = {row['key']: row['value'] for row in cur.fetchall()}
         conn.close()
         return jsonify(data)
-    if not is_admin():
+    if session.get('role') != 'admin':
         return jsonify({'error': 'Hanya Admin'}), 403
     if request.method == 'POST':
         data = request.get_json()
@@ -312,17 +315,38 @@ def api_settings():
         conn.close()
         return jsonify({'message': 'Pengaturan berhasil diubah'})
 
-# ================== EXPORT EXCEL ==================
+# --- Bulk Payment ---
+@app.route('/api/bulk_payment', methods=['POST'])
+def api_bulk_payment():
+    if 'user_id' not in session or session.get('role') != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 401
+    data = request.get_json()
+    tanggal = data.get('tanggal', datetime.date.today().isoformat())
+    nominal = data.get('nominal')
+    anggota_ids = data.get('anggota_ids', [])
+    if not nominal or nominal <= 0:
+        return jsonify({'error': 'Nominal tidak valid'}), 400
+    if not anggota_ids:
+        return jsonify({'error': 'Tidak ada anggota dipilih'}), 400
+    conn = get_db()
+    cur = conn.cursor()
+    for aid in anggota_ids:
+        cur.execute("""
+            INSERT INTO transaksi (anggota_id, tanggal, jenis, kategori, nominal, keterangan)
+            VALUES (?, ?, 'pemasukan', 'Iuran', ?, 'Bayar Cepat (Bulk)')
+        """, (aid, tanggal, nominal))
+    conn.commit()
+    conn.close()
+    return jsonify({'message': f'✅ {len(anggota_ids)} anggota berhasil dibayar!', 'surprise': get_surprise()})
+
+# --- Export Excel & PDF ---
 @app.route('/export/excel')
 def export_excel():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    
     bulan = request.args.get('bulan', datetime.date.today().strftime('%Y-%m'))
     conn = get_db()
     cur = conn.cursor()
-    
-    # Ambil data transaksi
     cur.execute("""
         SELECT t.tanggal, a.nama as anggota, t.jenis, t.kategori, t.nominal, t.keterangan
         FROM transaksi t
@@ -332,20 +356,15 @@ def export_excel():
     """, (bulan,))
     rows = cur.fetchall()
     conn.close()
-    
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Laporan Kas"
-    
-    # Header
     headers = ['Tanggal', 'Anggota', 'Jenis', 'Kategori', 'Nominal', 'Keterangan']
     for col, header in enumerate(headers, 1):
         cell = ws.cell(row=1, column=col, value=header)
         cell.font = Font(bold=True, color='FFFFFF')
         cell.fill = PatternFill(start_color='1E293B', end_color='1E293B', fill_type='solid')
         cell.alignment = Alignment(horizontal='center')
-    
-    # Data
     for r, row in enumerate(rows, 2):
         ws.cell(row=r, column=1, value=row['tanggal'])
         ws.cell(row=r, column=2, value=row['anggota'] or 'Umum')
@@ -353,23 +372,18 @@ def export_excel():
         ws.cell(row=r, column=4, value=row['kategori'] or '-')
         ws.cell(row=r, column=5, value=row['nominal'])
         ws.cell(row=r, column=6, value=row['keterangan'] or '-')
-    
-    # Auto column width
     for col in range(1, 7):
         ws.column_dimensions[openpyxl.utils.get_column_letter(col)].auto_size = True
-    
     output = io.BytesIO()
     wb.save(output)
     output.seek(0)
     return send_file(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                      as_attachment=True, download_name=f'laporan_kas_{bulan}.xlsx')
 
-# ================== EXPORT PDF ==================
 @app.route('/export/pdf')
 def export_pdf():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    
     bulan = request.args.get('bulan', datetime.date.today().strftime('%Y-%m'))
     conn = get_db()
     cur = conn.cursor()
@@ -382,7 +396,6 @@ def export_pdf():
     """, (bulan,))
     rows = cur.fetchall()
     conn.close()
-    
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=2*cm, leftMargin=2*cm,
                             topMargin=2*cm, bottomMargin=2*cm)
@@ -391,8 +404,6 @@ def export_pdf():
     title_style = ParagraphStyle('Title', parent=styles['Heading1'], fontSize=16, alignment=1, spaceAfter=12)
     elements.append(Paragraph(f'Laporan Kas Kelas - {bulan}', title_style))
     elements.append(Spacer(1, 0.5*cm))
-    
-    # Tabel
     data = [['Tanggal', 'Anggota', 'Jenis', 'Kategori', 'Nominal (Rp)', 'Keterangan']]
     for row in rows:
         data.append([
@@ -403,7 +414,6 @@ def export_pdf():
             f"{row['nominal']:,}",
             row['keterangan'] or '-'
         ])
-    
     table = Table(data, colWidths=[2*cm, 3*cm, 2.5*cm, 2.5*cm, 3*cm, 3*cm])
     table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.grey),
@@ -421,9 +431,6 @@ def export_pdf():
     buffer.seek(0)
     return send_file(buffer, mimetype='application/pdf',
                      as_attachment=True, download_name=f'laporan_kas_{bulan}.pdf')
-
-# Inisialisasi database saat pertama kali dijalankan
-init_db()
 
 if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0', port=5000)
