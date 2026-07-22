@@ -149,8 +149,9 @@ def api_chart_data():
     today = datetime.date.today()
     months = []
     labels = []
-    for i in range(5, -1, -1):
-        m = today.replace(day=1) - datetime.timedelta(days=30*i)
+    # 6 bulan ke DEPAN dari hari ini
+    for i in range(6):
+        m = today.replace(day=1) + datetime.timedelta(days=30*i)
         months.append(m.strftime('%Y-%m'))
         labels.append(m.strftime('%b %Y'))
     pemasukan = []
@@ -431,6 +432,37 @@ def export_pdf():
     buffer.seek(0)
     return send_file(buffer, mimetype='application/pdf',
                      as_attachment=True, download_name=f'laporan_kas_{bulan}.pdf')
+
+
+@app.route('/api/bulk_status')
+def api_bulk_status():
+    if 'user_id' not in session or session.get('role') != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 401
+    bulan = request.args.get('bulan', datetime.date.today().strftime('%Y-%m'))
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT value FROM settings WHERE key='iuran_bulanan'")
+    row = cur.fetchone()
+    target = int(row['value']) if row else 20000
+    cur.execute("SELECT id, nama, kelas FROM anggota ORDER BY nama")
+    anggota = cur.fetchall()
+    hasil = []
+    for a in anggota:
+        cur.execute("""
+            SELECT SUM(nominal) as total FROM transaksi 
+            WHERE anggota_id = ? AND jenis='pemasukan' AND strftime('%Y-%m', tanggal) = ?
+        """, (a['id'], bulan))
+        total = cur.fetchone()['total'] or 0
+        hasil.append({
+            'id': a['id'],
+            'nama': a['nama'],
+            'kelas': a['kelas'],
+            'total_bayar': total,
+            'target': target,
+            'status': 'Lunas' if total >= target else 'Belum'
+        })
+    conn.close()
+    return jsonify(hasil)
 
 if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0', port=5000)
