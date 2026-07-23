@@ -24,7 +24,7 @@ AIVEN_URL = "postgres://avnadmin:AVNS_7JPxrd03DK3rRDxj_TC@pg-213d1eb5-cworthy553
 
 # 🟢 SECONDARY: Supabase (Gratis, 500MB) - Cadangan + Backup
 # PASTIKAN PAKAI URL POSTGRESQL, BUKAN REST API!
-SUPABASE_URL = "postgresql://postgres:[3-Si$AJ3/sF9yq6]@db.qzwruajhuirrmttomjth.supabase.co:5432/postgres"
+SUPABASE_URL = "postgresql://postgres:[54321]@db.qzwruajhuirrmttomjth.supabase.co:5432/postgres"
 # Connection Pools
 primary_pool = psycopg2.pool.SimpleConnectionPool(1, 5, AIVEN_URL)
 secondary_pool = psycopg2.pool.SimpleConnectionPool(1, 3, SUPABASE_URL)
