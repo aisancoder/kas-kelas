@@ -24,7 +24,7 @@ AIVEN_URL = "postgres://avnadmin:AVNS_7JPxrd03DK3rRDxj_TC@pg-213d1eb5-cworthy553
 
 # 🟢 SECONDARY: Supabase (Gratis, 500MB)
 # GANTI PASSWORD_ASLI dengan password database Supabase-mu!
-SUPABASE_URL = "postgresql://postgres:3-Si$AJ3/sF9yq6@db.qzwruajhuirrmtmtomjth.supabase.co:5432/postgres"
+SUPABASE_URL = "postgresql://postgres:5432/sF9yq6@db.qzwruajhuirrmtmtomjth.supabase.co:5432/postgres"
 # Connection Pools
 primary_pool = psycopg2.pool.SimpleConnectionPool(1, 5, AIVEN_URL)
 secondary_pool = psycopg2.pool.SimpleConnectionPool(1, 3, SUPABASE_URL)
