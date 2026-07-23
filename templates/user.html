@@ -183,6 +183,95 @@
             .main { padding: 20px; max-height: none; }
             .stats-grid { grid-template-columns: 1fr 1fr; }
         }
+
+        /* ===================================================
+   MOBILE BOTTOM NAVIGATION
+   =================================================== */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: var(--bg-sidebar);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border-color);
+    display: none; /* Default hidden, muncul di HP */
+    justify-content: space-around;
+    align-items: center;
+    padding: 6px 0 env(safe-area-inset-bottom, 8px) 0;
+    z-index: 999;
+    box-shadow: 0 -4px 30px rgba(0,0,0,0.3);
+}
+
+.bottom-nav .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.6rem;
+    font-weight: 500;
+    padding: 4px 12px;
+    transition: 0.2s;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    min-width: 50px;
+    gap: 2px;
+    border-radius: 12px;
+}
+.bottom-nav .nav-item .icon {
+    font-size: 1.4rem;
+    line-height: 1;
+}
+.bottom-nav .nav-item.active {
+    color: var(--accent);
+}
+.bottom-nav .nav-item.active .icon {
+    transform: scale(1.1);
+}
+
+/* Tombol lebih (hanya untuk admin) */
+.mobile-menu-dropdown {
+    display: none;
+    position: fixed;
+    bottom: 70px;
+    right: 20px;
+    background: var(--bg-sidebar);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 8px 0;
+    min-width: 150px;
+    box-shadow: var(--shadow);
+    z-index: 1000;
+}
+.mobile-menu-dropdown.show { display: block; }
+.mobile-menu-dropdown .item {
+    padding: 10px 20px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    font-family: 'Inter', sans-serif;
+}
+.mobile-menu-dropdown .item:hover { background: rgba(255,255,255,0.05); }
+
+/* Sembunyikan sidebar di HP, tampilkan bottom nav */
+@media (max-width: 900px) {
+    .sidebar { display: none; }
+    .bottom-nav { display: flex; }
+    .main { 
+        padding: 16px 16px 80px 16px; /* Beri ruang untuk bottom nav */
+        max-height: none;
+    }
+}
         @media (max-width: 600px) {
             .stats-grid { grid-template-columns: 1fr; }
         }
@@ -358,6 +447,21 @@
             return new Intl.NumberFormat('id-ID').format(num);
         }
         function getThisMonth() { return new Date().toISOString().slice(0, 7); }
+// ============================================================
+//  MOBILE BOTTOM NAV (User)
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('#bottomNav .nav-item').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const page = this.dataset.page;
+            const sidebarItem = document.querySelector(`.sidebar .nav-item[data-page="${page}"]`);
+            if (sidebarItem) {
+                sidebarItem.click();
+            }
+            document.querySelectorAll('#bottomNav .nav-item').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
 
         // ============================================================
         //  NAVIGATION
@@ -554,5 +658,22 @@ async function loadAnggota() {
     } catch(e) { toast('Gagal load anggota'); }
 }
     </script>
+    <!-- ========================================== -->
+<!-- MOBILE BOTTOM NAV (User)                   -->
+<!-- ========================================== -->
+<nav class="bottom-nav" id="bottomNav">
+    <button class="nav-item active" data-page="dashboard">
+        <span class="icon">📊</span> Dashboard
+    </button>
+    <button class="nav-item" data-page="anggota">
+        <span class="icon">👥</span> Anggota
+    </button>
+    <button class="nav-item" data-page="status">
+        <span class="icon">📋</span> Status
+    </button>
+    <button class="nav-item" data-page="riwayat">
+        <span class="icon">📜</span> Riwayat
+    </button>
+</nav>
 </body>
 </html>
