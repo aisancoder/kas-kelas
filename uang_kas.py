@@ -24,7 +24,7 @@ AIVEN_URL = "postgres://avnadmin:AVNS_7JPxrd03DK3rRDxj_TC@pg-213d1eb5-cworthy553
 
 # 🟢 SECONDARY: Supabase (Gratis, 500MB)
 # GANTI PASSWORD_ASLI dengan password database Supabase-mu!
-SUPABASE_URL = "postgresql://postgres.qzwruajhuirrmttomjth:[3-Si$AJ3/sF9yq6]@aws-0-[South Asia]://"
+SUPABASE_URL = "postgresql://postgres.qzwruajhuirrmttomjth:[5432]@aws-0-[South Asia]://"
 
 
 
