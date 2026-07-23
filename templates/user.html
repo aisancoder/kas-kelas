@@ -186,6 +186,64 @@
         @media (max-width: 600px) {
             .stats-grid { grid-template-columns: 1fr; }
         }
+
+        /* ===================================================
+   LIGHT MODE THEME
+   =================================================== */
+[data-theme="light"] {
+    --bg-body: #f1f5f9;
+    --bg-sidebar: rgba(255, 255, 255, 0.85);
+    --bg-card: rgba(255, 255, 255, 0.6);
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --border-color: rgba(0, 0, 0, 0.08);
+    --shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.1);
+}
+[data-theme="light"] .sidebar .nav-item:hover { background: rgba(0,0,0,0.04); color: #0f172a; }
+[data-theme="light"] .sidebar .nav-item.active { background: rgba(139, 92, 246, 0.1); color: #5b21b6; }
+[data-theme="light"] .stat-box { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.06); }
+[data-theme="light"] .card { border-color: rgba(0,0,0,0.06); }
+[data-theme="light"] .form-control { background: rgba(0,0,0,0.03); color: #0f172a; border-color: rgba(0,0,0,0.1); }
+[data-theme="light"] .form-control::placeholder { color: rgba(0,0,0,0.3); }
+[data-theme="light"] th { color: #64748b; border-color: rgba(0,0,0,0.06); }
+[data-theme="light"] td { color: #1e293b; border-color: rgba(0,0,0,0.04); }
+[data-theme="light"] tr:hover td { background: rgba(0,0,0,0.02); }
+[data-theme="light"] .toast { background: rgba(255,255,255,0.9); color: #0f172a; border-color: rgba(0,0,0,0.1); }
+[data-theme="light"] .text-muted { color: #64748b; }
+
+/* ===================================================
+   CUSTOM SCROLLBAR
+   =================================================== */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 40px; }
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.3); }
+
+/* ===================================================
+   SKELETON LOADING (SHIMMER)
+   =================================================== */
+.skeleton {
+    background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.8s infinite;
+    border-radius: 8px;
+    min-height: 20px;
+    width: 100%;
+}
+[data-theme="light"] .skeleton {
+    background: linear-gradient(90deg, rgba(0,0,0,0.04) 25%, rgba(0,0,0,0.08) 50%, rgba(0,0,0,0.04) 75%);
+    background-size: 200% 100%;
+}
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+.skeleton-text { height: 18px; margin: 4px 0; }
+.skeleton-stat { height: 40px; width: 60%; margin: 0 auto; }
+.skeleton-row { height: 40px; margin: 4px 0; }
+
     </style>
 </head>
 <body>
@@ -197,6 +255,28 @@
         <div class="nav-item" data-page="status"><span class="icon">📋</span> Status</div>
         <div class="nav-item" data-page="riwayat"><span class="icon">📜</span> Riwayat</div>
         <div class="spacer"></div>
+        <!-- Tambahkan ini di atas <div class="user-profile"> -->
+<div style="padding: 8px 12px; margin-bottom: 8px;">
+    <button id="themeToggle" style="
+        background: rgba(255,255,255,0.04); 
+        border: 1px solid var(--border-color); 
+        border-radius: 40px; 
+        padding: 8px 16px; 
+        color: var(--text-secondary); 
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        font-size: 0.8rem;
+        cursor: pointer;
+        width: 100%;
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    ">
+        <span id="themeIcon">🌙</span> <span id="themeLabel">Dark</span>
+    </button>
+</div>
         <div class="user-profile">
             <span>👤 User</span>
             <a href="/logout" class="logout">Keluar</a>
@@ -408,6 +488,71 @@
             document.getElementById('riwayatBulan').value = thisMonth;
             loadDashboard(); loadChart(); loadAnggota(); loadStatus(); loadRiwayat();
         });
+
+        // ============================================================
+//  THEME TOGGLE
+// ============================================================
+function applyTheme(theme) {
+    if (theme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+        document.getElementById('themeIcon').textContent = '☀️';
+        document.getElementById('themeLabel').textContent = 'Light';
+    } else {
+        document.documentElement.removeAttribute('data-theme');
+        document.getElementById('themeIcon').textContent = '🌙';
+        document.getElementById('themeLabel').textContent = 'Dark';
+    }
+    localStorage.setItem('theme', theme);
+}
+
+function toggleTheme() {
+    const current = localStorage.getItem('theme') || 'dark';
+    const next = current === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+}
+
+// Load theme on startup
+document.addEventListener('DOMContentLoaded', function() {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    applyTheme(savedTheme);
+    
+    // Attach toggle event
+    const toggleBtn = document.getElementById('themeToggle');
+    if (toggleBtn) toggleBtn.addEventListener('click', toggleTheme);
+});
+
+// ============================================================
+//  SKELETON HELPERS (GANTI FUNGSI LOAD)
+// ============================================================
+function showSkeletonStats() {
+    document.getElementById('statSaldo').innerHTML = '<div class="skeleton skeleton-stat"></div>';
+    document.getElementById('statIn').innerHTML = '<div class="skeleton skeleton-stat"></div>';
+    document.getElementById('statOut').innerHTML = '<div class="skeleton skeleton-stat"></div>';
+    document.getElementById('statAnggota').innerHTML = '<div class="skeleton skeleton-stat"></div>';
+}
+
+function showSkeletonTable(tableId, cols = 4) {
+    let rows = '';
+    for (let i = 0; i < 5; i++) {
+        rows += `<tr>`;
+        for (let j = 0; j < cols; j++) {
+            rows += `<td><div class="skeleton skeleton-row"></div></td>`;
+        }
+        rows += `</tr>`;
+    }
+    document.getElementById(tableId).innerHTML = rows;
+}
+
+async function loadAnggota() {
+    showSkeletonTable('tableAnggota', 3); // <-- TAMBAHKAN INI
+    try {
+        const res = await fetch(API.anggota);
+        const data = await res.json();
+        const tbody = document.getElementById('tableAnggota');
+        if (!data.length) { tbody.innerHTML = '<tr><td colspan="3" class="text-muted">Belum ada</td></tr>'; return; }
+        tbody.innerHTML = data.map(a => `<tr><td>${a.id}</td><td><strong>${a.nama}</strong></td><td>${a.kelas||'-'}</td></tr>`).join('');
+    } catch(e) { toast('Gagal load anggota'); }
+}
     </script>
 </body>
 </html>
