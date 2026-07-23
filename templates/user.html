@@ -2,27 +2,42 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>User - Kas Kelas</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
+        /* ===================================================
+           ROOT VARIABLES
+           =================================================== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --bg-body: #07070c;
-            --bg-sidebar: rgba(15, 15, 25, 0.8);
+            --bg-sidebar: rgba(15, 15, 25, 0.85);
             --bg-card: rgba(255,255,255,0.03);
             --text-primary: #f1f5f9;
             --text-secondary: #94a3b8;
             --border-color: rgba(255,255,255,0.06);
             --shadow: 0 20px 40px -12px rgba(0,0,0,0.8);
-            --accent: #60a5fa; /* Biru untuk user, beda sedikit dari admin */
+            --accent: #60a5fa;
+            --radius: 20px;
+            --safe-bottom: env(safe-area-inset-bottom, 12px);
         }
-        body { font-family: 'Inter', sans-serif; background: var(--bg-body); color: var(--text-primary); min-height: 100vh; display: flex; }
-        
-        /* SIDEBAR */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            padding-bottom: calc(70px + var(--safe-bottom));
+        }
+
+        /* ===================================================
+           SIDEBAR (Desktop)
+           =================================================== */
         .sidebar {
             width: 260px;
             background: var(--bg-sidebar);
@@ -30,6 +45,7 @@
             -webkit-backdrop-filter: blur(24px);
             border-right: 1px solid var(--border-color);
             height: 100vh;
+            height: 100dvh;
             position: sticky;
             top: 0;
             padding: 24px 16px;
@@ -37,6 +53,7 @@
             flex-direction: column;
             flex-shrink: 0;
             overflow-y: auto;
+            transition: 0.3s;
         }
         .sidebar .brand {
             font-size: 1.5rem;
@@ -75,6 +92,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
         }
         .sidebar .user-profile span { font-size: 0.85rem; color: var(--text-secondary); }
         .sidebar .user-profile .logout {
@@ -82,54 +101,107 @@
             text-decoration: none;
             font-weight: 600;
             font-size: 0.8rem;
-            padding: 6px 12px;
+            padding: 6px 14px;
             border-radius: 40px;
             border: 1px solid rgba(248,113,113,0.2);
             transition: 0.2s;
         }
         .sidebar .user-profile .logout:hover { background: rgba(248,113,113,0.1); }
+        .sidebar .theme-toggle {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border-color);
+            border-radius: 40px;
+            padding: 8px 16px;
+            color: var(--text-secondary);
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .sidebar .theme-toggle:hover { background: rgba(255,255,255,0.08); }
 
-        /* MAIN */
+        /* ===================================================
+           MAIN CONTENT
+           =================================================== */
         .main {
             flex: 1;
             padding: 32px 40px;
             overflow-y: auto;
             max-height: 100vh;
+            max-height: 100dvh;
         }
         .page { display: none; animation: fadeUp 0.4s ease; }
         .page.active { display: block; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* CARDS */
+        /* ===================================================
+           CARDS
+           =================================================== */
         .card {
             background: var(--bg-card);
             backdrop-filter: blur(12px);
             border: 1px solid var(--border-color);
-            border-radius: 24px;
+            border-radius: var(--radius);
             padding: 24px;
             margin-bottom: 24px;
             box-shadow: var(--shadow);
             transition: 0.3s;
         }
         .card:hover { border-color: rgba(255,255,255,0.08); }
-        .card-title { font-weight: 600; font-size: 1.1rem; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+        .card-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
 
-        /* STATS */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+        /* ===================================================
+           STATS
+           =================================================== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+        }
         .stat-box {
             background: rgba(255,255,255,0.02);
             border: 1px solid var(--border-color);
-            border-radius: 20px;
+            border-radius: 16px;
             padding: 20px;
             transition: 0.3s;
         }
         .stat-box:hover { background: rgba(255,255,255,0.04); transform: translateY(-4px); }
-        .stat-box .num { font-size: 2rem; font-weight: 700; background: linear-gradient(135deg, #60a5fa, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .stat-box .label { font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+        .stat-box .num {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stat-box .label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
 
-        /* TABLE */
-        .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        /* ===================================================
+           TABLE
+           =================================================== */
+        .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -4px; padding: 0 4px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 400px; }
         th {
             text-align: left;
             padding: 12px 8px;
@@ -148,16 +220,27 @@
             font-size: 0.7rem;
             font-weight: 600;
             display: inline-block;
+            white-space: nowrap;
         }
         .badge-success { background: rgba(52,211,153,0.15); color: #34d399; }
         .badge-danger { background: rgba(248,113,113,0.15); color: #f87171; }
         .text-muted { color: var(--text-secondary); font-size: 0.85rem; }
         .mt-2 { margin-top: 12px; }
         .chart-container { height: 280px; width: 100%; }
+        .toast {
+            position: fixed; bottom: calc(80px + var(--safe-bottom)); left: 50%; transform: translateX(-50%) translateY(100px);
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(20px);
+            color: #fff; padding: 14px 24px; border-radius: 60px;
+            font-weight: 500; z-index: 999; border: 1px solid rgba(255,255,255,0.05);
+            opacity: 0; transition: 0.5s; pointer-events: none;
+            max-width: 90%; text-align: center;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
         .form-control {
             width: 100%;
             padding: 12px 16px;
-            border-radius: 16px;
+            border-radius: 14px;
             border: 1px solid var(--border-color);
             background: rgba(255,255,255,0.03);
             color: #fff;
@@ -165,218 +248,156 @@
             font-size: 0.95rem;
             transition: 0.3s;
             outline: none;
+            min-height: 48px;
         }
         .form-control:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.1); }
-        .form-control::placeholder { color: rgba(255,255,255,0.2); }
+        .form-control::placeholder { color: rgba(255,255,255,0.25); }
         .form-control option { background: #1a1a2e; }
-        .toast {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(20px);
-            color: #fff; padding: 16px 32px; border-radius: 60px;
-            font-weight: 500; z-index: 999; border: 1px solid rgba(255,255,255,0.05);
-            opacity: 0; transition: 0.5s; pointer-events: none;
-        }
-        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-        @media (max-width: 900px) {
+        /* ===================================================
+           LIGHT THEME
+           =================================================== */
+        [data-theme="light"] {
+            --bg-body: #f1f5f9;
+            --bg-sidebar: rgba(255, 255, 255, 0.85);
+            --bg-card: rgba(255,255,255,0.6);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --border-color: rgba(0,0,0,0.08);
+            --shadow: 0 20px 40px -12px rgba(0,0,0,0.1);
+        }
+        [data-theme="light"] .sidebar .nav-item:hover { background: rgba(0,0,0,0.04); color: #0f172a; }
+        [data-theme="light"] .sidebar .nav-item.active { background: rgba(96, 165, 250, 0.1); color: #2563eb; }
+        [data-theme="light"] .stat-box { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.06); }
+        [data-theme="light"] .card { border-color: rgba(0,0,0,0.06); }
+        [data-theme="light"] .form-control { background: rgba(0,0,0,0.03); color: #0f172a; border-color: rgba(0,0,0,0.1); }
+        [data-theme="light"] .form-control::placeholder { color: rgba(0,0,0,0.3); }
+        [data-theme="light"] th { color: #64748b; border-color: rgba(0,0,0,0.06); }
+        [data-theme="light"] td { color: #1e293b; border-color: rgba(0,0,0,0.04); }
+        [data-theme="light"] tr:hover td { background: rgba(0,0,0,0.02); }
+        [data-theme="light"] .toast { background: rgba(255,255,255,0.9); color: #0f172a; border-color: rgba(0,0,0,0.1); }
+        [data-theme="light"] .text-muted { color: #64748b; }
+        [data-theme="light"] .skeleton { background: linear-gradient(90deg, rgba(0,0,0,0.04) 25%, rgba(0,0,0,0.08) 50%, rgba(0,0,0,0.04) 75%); }
+
+        /* ===================================================
+           SKELETON
+           =================================================== */
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.8s infinite;
+            border-radius: 8px;
+        }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        .skeleton-text { height: 18px; margin: 4px 0; }
+        .skeleton-stat { height: 40px; width: 60%; margin: 0 auto; border-radius: 8px; }
+        .skeleton-row { height: 36px; margin: 4px 0; border-radius: 6px; }
+
+        /* ===================================================
+           CUSTOM SCROLLBAR
+           =================================================== */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 40px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+        [data-theme="light"] ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); }
+        [data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
+
+        /* ===================================================
+           MOBILE BOTTOM NAV
+           =================================================== */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: var(--bg-sidebar);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border-color);
+            display: none;
+            justify-content: space-around;
+            align-items: center;
+            padding: 6px 0 calc(6px + var(--safe-bottom));
+            z-index: 999;
+            box-shadow: 0 -4px 30px rgba(0,0,0,0.3);
+        }
+        .bottom-nav .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.55rem;
+            font-weight: 500;
+            padding: 4px 8px;
+            transition: 0.2s;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            min-width: 44px;
+            gap: 2px;
+            border-radius: 12px;
+            touch-action: manipulation;
+        }
+        .bottom-nav .nav-item .icon { font-size: 1.4rem; line-height: 1; }
+        .bottom-nav .nav-item.active { color: var(--accent); }
+        .bottom-nav .nav-item.active .icon { transform: scale(1.05); }
+
+        /* ===================================================
+           RESPONSIVE BREAKPOINTS
+           =================================================== */
+        @media (max-width: 1024px) {
             .sidebar { display: none; }
-            .main { padding: 20px; max-height: none; }
-            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .bottom-nav { display: flex; }
+            .main { padding: 16px 16px 80px 16px; max-height: none; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .chart-container { height: 220px; }
+            .card { padding: 16px; }
+            .card-title { font-size: 1rem; }
+            .stat-box .num { font-size: 1.5rem; }
+            .toast { bottom: calc(80px + var(--safe-bottom)); }
         }
-
-        /* ===================================================
-   MOBILE BOTTOM NAVIGATION
-   =================================================== */
-.bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: var(--bg-sidebar);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-top: 1px solid var(--border-color);
-    display: none; /* Default hidden, muncul di HP */
-    justify-content: space-around;
-    align-items: center;
-    padding: 6px 0 env(safe-area-inset-bottom, 8px) 0;
-    z-index: 999;
-    box-shadow: 0 -4px 30px rgba(0,0,0,0.3);
-}
-
-.bottom-nav .nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: none;
-    color: var(--text-secondary);
-    font-size: 0.6rem;
-    font-weight: 500;
-    padding: 4px 12px;
-    transition: 0.2s;
-    font-family: 'Inter', sans-serif;
-    cursor: pointer;
-    min-width: 50px;
-    gap: 2px;
-    border-radius: 12px;
-}
-.bottom-nav .nav-item .icon {
-    font-size: 1.4rem;
-    line-height: 1;
-}
-.bottom-nav .nav-item.active {
-    color: var(--accent);
-}
-.bottom-nav .nav-item.active .icon {
-    transform: scale(1.1);
-}
-
-/* Tombol lebih (hanya untuk admin) */
-.mobile-menu-dropdown {
-    display: none;
-    position: fixed;
-    bottom: 70px;
-    right: 20px;
-    background: var(--bg-sidebar);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
-    padding: 8px 0;
-    min-width: 150px;
-    box-shadow: var(--shadow);
-    z-index: 1000;
-}
-.mobile-menu-dropdown.show { display: block; }
-.mobile-menu-dropdown .item {
-    padding: 10px 20px;
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    font-weight: 500;
-    cursor: pointer;
-    border: none;
-    background: transparent;
-    width: 100%;
-    text-align: left;
-    font-family: 'Inter', sans-serif;
-}
-.mobile-menu-dropdown .item:hover { background: rgba(255,255,255,0.05); }
-
-/* Sembunyikan sidebar di HP, tampilkan bottom nav */
-@media (max-width: 900px) {
-    .sidebar { display: none; }
-    .bottom-nav { display: flex; }
-    .main { 
-        padding: 16px 16px 80px 16px; /* Beri ruang untuk bottom nav */
-        max-height: none;
-    }
-}
-        @media (max-width: 600px) {
-            .stats-grid { grid-template-columns: 1fr; }
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .stat-box { padding: 14px; }
+            .stat-box .num { font-size: 1.2rem; }
+            .main { padding: 12px 12px 80px 12px; }
+            .card { padding: 14px; border-radius: 16px; }
+            table { font-size: 0.75rem; min-width: 300px; }
+            th, td { padding: 8px 4px; }
+            .bottom-nav .nav-item { font-size: 0.5rem; padding: 2px 6px; min-width: 36px; }
+            .bottom-nav .nav-item .icon { font-size: 1.2rem; }
+            .chart-container { height: 180px; }
         }
-
-        /* ===================================================
-   LIGHT MODE THEME
-   =================================================== */
-[data-theme="light"] {
-    --bg-body: #f1f5f9;
-    --bg-sidebar: rgba(255, 255, 255, 0.85);
-    --bg-card: rgba(255, 255, 255, 0.6);
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --border-color: rgba(0, 0, 0, 0.08);
-    --shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.1);
-}
-[data-theme="light"] .sidebar .nav-item:hover { background: rgba(0,0,0,0.04); color: #0f172a; }
-[data-theme="light"] .sidebar .nav-item.active { background: rgba(139, 92, 246, 0.1); color: #5b21b6; }
-[data-theme="light"] .stat-box { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.06); }
-[data-theme="light"] .card { border-color: rgba(0,0,0,0.06); }
-[data-theme="light"] .form-control { background: rgba(0,0,0,0.03); color: #0f172a; border-color: rgba(0,0,0,0.1); }
-[data-theme="light"] .form-control::placeholder { color: rgba(0,0,0,0.3); }
-[data-theme="light"] th { color: #64748b; border-color: rgba(0,0,0,0.06); }
-[data-theme="light"] td { color: #1e293b; border-color: rgba(0,0,0,0.04); }
-[data-theme="light"] tr:hover td { background: rgba(0,0,0,0.02); }
-[data-theme="light"] .toast { background: rgba(255,255,255,0.9); color: #0f172a; border-color: rgba(0,0,0,0.1); }
-[data-theme="light"] .text-muted { color: #64748b; }
-
-/* ===================================================
-   CUSTOM SCROLLBAR
-   =================================================== */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 40px; }
-[data-theme="light"] ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
-[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.3); }
-
-/* ===================================================
-   SKELETON LOADING (SHIMMER)
-   =================================================== */
-.skeleton {
-    background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.8s infinite;
-    border-radius: 8px;
-    min-height: 20px;
-    width: 100%;
-}
-[data-theme="light"] .skeleton {
-    background: linear-gradient(90deg, rgba(0,0,0,0.04) 25%, rgba(0,0,0,0.08) 50%, rgba(0,0,0,0.04) 75%);
-    background-size: 200% 100%;
-}
-@keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-}
-.skeleton-text { height: 18px; margin: 4px 0; }
-.skeleton-stat { height: 40px; width: 60%; margin: 0 auto; }
-.skeleton-row { height: 40px; margin: 4px 0; }
-
     </style>
 </head>
 <body>
-    <!-- SIDEBAR -->
+    <!-- ==========================================
+    SIDEBAR (Desktop)
+    ========================================== -->
     <nav class="sidebar" id="sidebar">
         <div class="brand">💰 Kas Kelas</div>
+        <button class="theme-toggle" id="themeToggle"><span id="themeIcon">🌙</span> <span id="themeLabel">Dark</span></button>
         <div class="nav-item active" data-page="dashboard"><span class="icon">📊</span> Dashboard</div>
         <div class="nav-item" data-page="anggota"><span class="icon">👥</span> Anggota</div>
         <div class="nav-item" data-page="status"><span class="icon">📋</span> Status</div>
         <div class="nav-item" data-page="riwayat"><span class="icon">📜</span> Riwayat</div>
         <div class="spacer"></div>
-        <!-- Tambahkan ini di atas <div class="user-profile"> -->
-<div style="padding: 8px 12px; margin-bottom: 8px;">
-    <button id="themeToggle" style="
-        background: rgba(255,255,255,0.04); 
-        border: 1px solid var(--border-color); 
-        border-radius: 40px; 
-        padding: 8px 16px; 
-        color: var(--text-secondary); 
-        font-family: 'Inter', sans-serif;
-        font-weight: 600;
-        font-size: 0.8rem;
-        cursor: pointer;
-        width: 100%;
-        transition: 0.3s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-    ">
-        <span id="themeIcon">🌙</span> <span id="themeLabel">Dark</span>
-    </button>
-</div>
         <div class="user-profile">
             <span>👤 User</span>
             <a href="/logout" class="logout">Keluar</a>
         </div>
     </nav>
 
-    <!-- MAIN CONTENT -->
+    <!-- ==========================================
+    MAIN CONTENT
+    ========================================== -->
     <div class="main" id="mainContent">
         <div id="toast" class="toast"></div>
 
-        <!-- PAGE: DASHBOARD -->
+        <!-- Dashboard -->
         <div id="page-dashboard" class="page active">
             <div class="card">
                 <div class="stats-grid" id="dashboardStats">
@@ -389,38 +410,42 @@
             <div class="card"><div class="card-title">📈 Grafik 6 Bulan</div><div class="chart-container"><canvas id="chartKas"></canvas></div></div>
         </div>
 
-        <!-- PAGE: ANGGOTA (READ ONLY) -->
+        <!-- Anggota -->
         <div id="page-anggota" class="page">
             <div class="card">
                 <div class="card-title">📋 Daftar Anggota</div>
-                <div class="table-wrap">
-                    <table><thead><tr><th>ID</th><th>Nama</th><th>Kelas</th></tr></thead><tbody id="tableAnggota"></tbody></table>
-                </div>
-                <p class="text-muted mt-2">* Hanya dapat melihat data anggota.</p>
+                <div class="table-wrap"><table><thead><tr><th>ID</th><th>Nama</th><th>Kelas</th></tr></thead><tbody id="tableAnggota"></tbody></table></div>
+                <p class="text-muted mt-2">* Hanya dapat melihat</p>
             </div>
         </div>
 
-        <!-- PAGE: STATUS -->
+        <!-- Status -->
         <div id="page-status" class="page">
             <div class="card">
                 <div class="card-title"><span>📊 Status Iuran</span><input type="month" id="statusBulan" class="form-control" style="width:auto;padding:6px 12px;" onchange="loadStatus()"></div>
-                <div class="table-wrap">
-                    <table><thead><tr><th>Nama</th><th>Total Bayar</th><th>Target</th><th>Status</th></tr></thead><tbody id="tableStatus"></tbody></table>
-                </div>
+                <div class="table-wrap"><table><thead><tr><th>Nama</th><th>Total Bayar</th><th>Target</th><th>Status</th></tr></thead><tbody id="tableStatus"></tbody></table></div>
                 <p id="statusSummary" class="text-muted mt-2"></p>
             </div>
         </div>
 
-        <!-- PAGE: RIWAYAT (READ ONLY) -->
+        <!-- Riwayat -->
         <div id="page-riwayat" class="page">
             <div class="card">
-                <div class="card-title"><span>📜 Riwayat Transaksi</span><input type="month" id="riwayatBulan" class="form-control" style="width:auto;padding:6px 12px;" onchange="loadRiwayat()"></div>
-                <div class="table-wrap">
-                    <table><thead><tr><th>Tgl</th><th>Anggota</th><th>Jenis</th><th>Kategori</th><th>Nominal</th></tr></thead><tbody id="tableRiwayat"></tbody></table>
-                </div>
+                <div class="card-title"><span>📜 Riwayat</span><input type="month" id="riwayatBulan" class="form-control" style="width:auto;padding:6px 12px;" onchange="loadRiwayat()"></div>
+                <div class="table-wrap"><table><thead><tr><th>Tgl</th><th>Anggota</th><th>Jenis</th><th>Kategori</th><th>Nominal</th></tr></thead><tbody id="tableRiwayat"></tbody></table></div>
             </div>
         </div>
     </div>
+
+    <!-- ==========================================
+    MOBILE BOTTOM NAV (User)
+    ========================================== -->
+    <nav class="bottom-nav" id="bottomNav">
+        <button class="nav-item active" data-page="dashboard"><span class="icon">📊</span><span>Dashboard</span></button>
+        <button class="nav-item" data-page="anggota"><span class="icon">👥</span><span>Anggota</span></button>
+        <button class="nav-item" data-page="status"><span class="icon">📋</span><span>Status</span></button>
+        <button class="nav-item" data-page="riwayat"><span class="icon">📜</span><span>Riwayat</span></button>
+    </nav>
 
     <script>
         // ============================================================
@@ -447,44 +472,86 @@
             return new Intl.NumberFormat('id-ID').format(num);
         }
         function getThisMonth() { return new Date().toISOString().slice(0, 7); }
-// ============================================================
-//  MOBILE BOTTOM NAV (User)
-// ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('#bottomNav .nav-item').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const page = this.dataset.page;
-            const sidebarItem = document.querySelector(`.sidebar .nav-item[data-page="${page}"]`);
-            if (sidebarItem) {
-                sidebarItem.click();
-            }
-            document.querySelectorAll('#bottomNav .nav-item').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
 
         // ============================================================
-        //  NAVIGATION
+        //  THEME TOGGLE
         // ============================================================
-        document.querySelectorAll('.nav-item').forEach(item => {
+        function applyTheme(theme) {
+            if (theme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+                document.getElementById('themeIcon').textContent = '☀️';
+                document.getElementById('themeLabel').textContent = 'Light';
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                document.getElementById('themeIcon').textContent = '🌙';
+                document.getElementById('themeLabel').textContent = 'Dark';
+            }
+            localStorage.setItem('theme', theme);
+        }
+
+        function toggleTheme() {
+            const current = localStorage.getItem('theme') || 'dark';
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+        }
+
+        // ============================================================
+        //  SKELETON HELPERS
+        // ============================================================
+        function showSkeletonStats() {
+            document.getElementById('statSaldo').innerHTML = '<div class="skeleton skeleton-stat"></div>';
+            document.getElementById('statIn').innerHTML = '<div class="skeleton skeleton-stat"></div>';
+            document.getElementById('statOut').innerHTML = '<div class="skeleton skeleton-stat"></div>';
+            document.getElementById('statAnggota').innerHTML = '<div class="skeleton skeleton-stat"></div>';
+        }
+
+        function showSkeletonTable(tableId, cols = 4) {
+            let rows = '';
+            for (let i = 0; i < 5; i++) {
+                rows += `<tr>`;
+                for (let j = 0; j < cols; j++) {
+                    rows += `<td><div class="skeleton skeleton-row"></div></td>`;
+                }
+                rows += `</tr>`;
+            }
+            document.getElementById(tableId).innerHTML = rows;
+        }
+
+        // ============================================================
+        //  NAVIGATION (Sidebar + Mobile)
+        // ============================================================
+        function navigateTo(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + page).classList.add('active');
+            document.querySelectorAll('.sidebar .nav-item').forEach(i => i.classList.remove('active'));
+            document.querySelectorAll('.bottom-nav .nav-item').forEach(i => i.classList.remove('active'));
+            const sidebarItem = document.querySelector(`.sidebar .nav-item[data-page="${page}"]`);
+            if (sidebarItem) sidebarItem.classList.add('active');
+            const bottomItem = document.querySelector(`.bottom-nav .nav-item[data-page="${page}"]`);
+            if (bottomItem) bottomItem.classList.add('active');
+            
+            if (page === 'dashboard') { loadDashboard(); loadChart(); }
+            if (page === 'anggota') loadAnggota();
+            if (page === 'status') loadStatus();
+            if (page === 'riwayat') loadRiwayat();
+        }
+
+        document.querySelectorAll('.sidebar .nav-item').forEach(item => {
             item.addEventListener('click', function() {
-                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-                const page = this.dataset.page;
-                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-                document.getElementById('page-' + page).classList.add('active');
-                
-                if (page === 'dashboard') { loadDashboard(); loadChart(); }
-                if (page === 'anggota') loadAnggota();
-                if (page === 'status') loadStatus();
-                if (page === 'riwayat') loadRiwayat();
+                navigateTo(this.dataset.page);
+            });
+        });
+
+        document.querySelectorAll('#bottomNav .nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                navigateTo(this.dataset.page);
             });
         });
 
         // ============================================================
-        //  DASHBOARD & CHART
+        //  DASHBOARD
         // ============================================================
         async function loadDashboard() {
+            showSkeletonStats();
             try {
                 const res = await fetch(API.dashboard);
                 const data = await res.json();
@@ -526,11 +593,12 @@ document.addEventListener('DOMContentLoaded', function() {
         //  ANGGOTA (READ ONLY)
         // ============================================================
         async function loadAnggota() {
+            showSkeletonTable('tableAnggota', 3);
             try {
                 const res = await fetch(API.anggota);
                 const data = await res.json();
                 const tbody = document.getElementById('tableAnggota');
-                if (!data.length) { tbody.innerHTML = '<tr><td colspan="3" class="text-muted">Belum ada anggota</td></tr>'; return; }
+                if (!data.length) { tbody.innerHTML = '<tr><td colspan="3" class="text-muted">Belum ada</td></tr>'; return; }
                 tbody.innerHTML = data.map(a => `<tr><td>${a.id}</td><td><strong>${a.nama}</strong></td><td>${a.kelas||'-'}</td></tr>`).join('');
             } catch(e) { toast('Gagal load anggota'); }
         }
@@ -539,13 +607,14 @@ document.addEventListener('DOMContentLoaded', function() {
         //  STATUS
         // ============================================================
         async function loadStatus() {
+            showSkeletonTable('tableStatus', 4);
             const bulan = document.getElementById('statusBulan').value || getThisMonth();
             try {
                 const res = await fetch(`${API.status}?bulan=${bulan}`);
                 const data = await res.json();
                 const tbody = document.getElementById('tableStatus');
                 if (!data.data.length) {
-                    tbody.innerHTML = '<tr><td colspan="4" class="text-muted">Tidak ada anggota</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-muted">Tidak ada</td></tr>';
                     document.getElementById('statusSummary').textContent = '';
                     return;
                 }
@@ -562,13 +631,14 @@ document.addEventListener('DOMContentLoaded', function() {
         //  RIWAYAT (READ ONLY)
         // ============================================================
         async function loadRiwayat() {
+            showSkeletonTable('tableRiwayat', 5);
             const bulan = document.getElementById('riwayatBulan').value || getThisMonth();
             try {
                 const res = await fetch(`${API.transaksi}?bulan=${bulan}`);
                 const data = await res.json();
                 const tbody = document.getElementById('tableRiwayat');
                 if (!data.length) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="text-muted">Tidak ada transaksi</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-muted">Tidak ada</td></tr>';
                     return;
                 }
                 tbody.innerHTML = data.map(t => `
@@ -590,90 +660,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const thisMonth = getThisMonth();
             document.getElementById('statusBulan').value = thisMonth;
             document.getElementById('riwayatBulan').value = thisMonth;
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            applyTheme(savedTheme);
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
             loadDashboard(); loadChart(); loadAnggota(); loadStatus(); loadRiwayat();
         });
-
-        // ============================================================
-//  THEME TOGGLE
-// ============================================================
-function applyTheme(theme) {
-    if (theme === 'light') {
-        document.documentElement.setAttribute('data-theme', 'light');
-        document.getElementById('themeIcon').textContent = '☀️';
-        document.getElementById('themeLabel').textContent = 'Light';
-    } else {
-        document.documentElement.removeAttribute('data-theme');
-        document.getElementById('themeIcon').textContent = '🌙';
-        document.getElementById('themeLabel').textContent = 'Dark';
-    }
-    localStorage.setItem('theme', theme);
-}
-
-function toggleTheme() {
-    const current = localStorage.getItem('theme') || 'dark';
-    const next = current === 'dark' ? 'light' : 'dark';
-    applyTheme(next);
-}
-
-// Load theme on startup
-document.addEventListener('DOMContentLoaded', function() {
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    applyTheme(savedTheme);
-    
-    // Attach toggle event
-    const toggleBtn = document.getElementById('themeToggle');
-    if (toggleBtn) toggleBtn.addEventListener('click', toggleTheme);
-});
-
-// ============================================================
-//  SKELETON HELPERS (GANTI FUNGSI LOAD)
-// ============================================================
-function showSkeletonStats() {
-    document.getElementById('statSaldo').innerHTML = '<div class="skeleton skeleton-stat"></div>';
-    document.getElementById('statIn').innerHTML = '<div class="skeleton skeleton-stat"></div>';
-    document.getElementById('statOut').innerHTML = '<div class="skeleton skeleton-stat"></div>';
-    document.getElementById('statAnggota').innerHTML = '<div class="skeleton skeleton-stat"></div>';
-}
-
-function showSkeletonTable(tableId, cols = 4) {
-    let rows = '';
-    for (let i = 0; i < 5; i++) {
-        rows += `<tr>`;
-        for (let j = 0; j < cols; j++) {
-            rows += `<td><div class="skeleton skeleton-row"></div></td>`;
-        }
-        rows += `</tr>`;
-    }
-    document.getElementById(tableId).innerHTML = rows;
-}
-
-async function loadAnggota() {
-    showSkeletonTable('tableAnggota', 3); // <-- TAMBAHKAN INI
-    try {
-        const res = await fetch(API.anggota);
-        const data = await res.json();
-        const tbody = document.getElementById('tableAnggota');
-        if (!data.length) { tbody.innerHTML = '<tr><td colspan="3" class="text-muted">Belum ada</td></tr>'; return; }
-        tbody.innerHTML = data.map(a => `<tr><td>${a.id}</td><td><strong>${a.nama}</strong></td><td>${a.kelas||'-'}</td></tr>`).join('');
-    } catch(e) { toast('Gagal load anggota'); }
-}
     </script>
-    <!-- ========================================== -->
-<!-- MOBILE BOTTOM NAV (User)                   -->
-<!-- ========================================== -->
-<nav class="bottom-nav" id="bottomNav">
-    <button class="nav-item active" data-page="dashboard">
-        <span class="icon">📊</span> Dashboard
-    </button>
-    <button class="nav-item" data-page="anggota">
-        <span class="icon">👥</span> Anggota
-    </button>
-    <button class="nav-item" data-page="status">
-        <span class="icon">📋</span> Status
-    </button>
-    <button class="nav-item" data-page="riwayat">
-        <span class="icon">📜</span> Riwayat
-    </button>
-</nav>
 </body>
 </html>
