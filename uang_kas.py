@@ -20,7 +20,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(days=7)
 
 # ================== KONFIGURASI 2 DATABASE ==================
 # 🔵 PRIMARY: Aiven (Gratis, 1GB)
-AIVEN_URL = "postgres://avnadmin:AVNS_7JPxrd0D3DK3rRDxj_TC@pg-213d1eb5-cworthy553-e567.g.aivencloud.com:18553/defaultdb?sslmode=require"
+AIVEN_URL = "postgres://avnadmin:AVNS_7JPxrd03DK3rRDxj_TC@pg-213d1eb5-cworthy553-e567.g.aivencloud.com:18553/defaultdb?sslmode=require"
 
 # 🟢 SECONDARY: Supabase (Gratis, 500MB)
 # GANTI PASSWORD_ASLI dengan password database Supabase-mu!
