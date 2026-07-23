@@ -19,12 +19,12 @@ app.secret_key = 'rahasia_kas_kelas_2026'
 app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(days=7)
 
 # ================== KONFIGURASI 2 DATABASE ==================
-# 🔵 PRIMARY: Aiven (Gratis, 1GB) - Pengganti ElephantSQL
-AIVEN_URL = "postgres://avnadmin:AVNS_7JPxrd03DK3rRDxj_TC@pg-213d1eb5-cworthy553-e567.g.aivencloud.com:18553/defaultdb?sslmode=require"
+# 🔵 PRIMARY: Aiven (Gratis, 1GB)
+AIVEN_URL = "postgres://avnadmin:AVNS_7JPxrd0D3DK3rRDxj_TC@pg-213d1eb5-cworthy553-e567.g.aivencloud.com:18553/defaultdb?sslmode=require"
 
-# 🟢 SECONDARY: Supabase (Gratis, 500MB) - Cadangan + Backup
-# PASTIKAN PAKAI URL POSTGRESQL, BUKAN REST API!
-SUPABASE_URL = "postgresql://postgres:[54321]@db.qzwruajhuirrmttomjth.supabase.co:5432/postgres"
+# 🟢 SECONDARY: Supabase (Gratis, 500MB)
+# GANTI PASSWORD_ASLI dengan password database Supabase-mu!
+SUPABASE_URL = "postgresql://postgres:3-Si$AJ3/sF9yq6@db.qzwruajhuirrmtmtomjth.supabase.co:5432/postgres"
 # Connection Pools
 primary_pool = psycopg2.pool.SimpleConnectionPool(1, 5, AIVEN_URL)
 secondary_pool = psycopg2.pool.SimpleConnectionPool(1, 3, SUPABASE_URL)
